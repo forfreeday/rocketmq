@@ -17,9 +17,17 @@
 package org.apache.rocketmq.store.config;
 
 import java.io.File;
-
+/**
+ * 存储配置
+ * [read_code]
+ * date 2020/9/8 09:28
+ */
 public class StorePathConfigHelper {
-
+    /**
+     * 这个就是初始化 consumequeue 的位置
+     * [read_code]
+     * date 2020/9/8 09:33
+     */
     public static String getStorePathConsumeQueue(final String rootDir) {
         return rootDir + File.separator + "consumequeue";
     }

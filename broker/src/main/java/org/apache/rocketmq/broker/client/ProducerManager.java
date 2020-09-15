@@ -35,12 +35,21 @@ import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
 import org.apache.rocketmq.remoting.common.RemotingUtil;
 
+/**
+ * 管理 生产者
+ *      生产是通过 NameServer 获得 Broker信息，这里确有一个管理 Producer 的类，
+ *      用意应该是，Producer 会和 Broker 建立长连接，Broker 则要管理这些长连接的状态，所有有这个管理类
+ *      在下面的代码中，有查看 Channel 活越状态的方法，推测是这样，后面再通过代码和单元测试进行验证。
+ * [read_code]
+ * date 2020/9/9 17:43
+ */
 public class ProducerManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private static final long LOCK_TIMEOUT_MILLIS = 3000;
     private static final long CHANNEL_EXPIRED_TIMEOUT = 1000 * 120;
     private static final int GET_AVALIABLE_CHANNEL_RETRY_COUNT = 3;
     private final Lock groupChannelLock = new ReentrantLock();
+    //以分组名存储通道信息，一个分组可能有一个或以上的Producer
     private final HashMap<String /* group name */, HashMap<Channel, ClientChannelInfo>> groupChannelTable =
         new HashMap<String, HashMap<Channel, ClientChannelInfo>>();
     private PositiveAtomicCounter positiveAtomicCounter = new PositiveAtomicCounter();
@@ -131,6 +140,11 @@ public class ProducerManager {
         }
     }
 
+    /**
+     * 注册生产者
+     * [read_code]
+     * date: 2020/9/9 19:32
+     */
     public void registerProducer(final String group, final ClientChannelInfo clientChannelInfo) {
         try {
             ClientChannelInfo clientChannelInfoFound = null;

@@ -68,11 +68,18 @@ public class NamesrvStartup {
         return null;
     }
 
+    /**
+     * 创建 NamesrvController
+     * [read_code]
+     * date: 2020/9/10 17:50
+     * @param args 注意这个参数，是命令行启动时外部传入的参数，使用的是 apache 的 commons-cli
+     */
     public static NamesrvController createNamesrvController(String[] args) throws IOException, JoranException {
         System.setProperty(RemotingCommand.REMOTING_VERSION_KEY, Integer.toString(MQVersion.CURRENT_VERSION));
         //PackageConflictDetect.detectFastjson();
 
         Options options = ServerUtil.buildCommandlineOptions(new Options());
+        //[read_code]_[2020/9/10 17:51]: 把 args 传入
         commandLine = ServerUtil.parseCmdLine("mqnamesrv", args, buildCommandlineOptions(options), new PosixParser());
         if (null == commandLine) {
             System.exit(-1);
@@ -82,6 +89,8 @@ public class NamesrvStartup {
         final NamesrvConfig namesrvConfig = new NamesrvConfig();
         final NettyServerConfig nettyServerConfig = new NettyServerConfig();
         nettyServerConfig.setListenPort(9876);
+
+        // -c 从指定文件中，读取配置到 namesrvConfig
         if (commandLine.hasOption('c')) {
             String file = commandLine.getOptionValue('c');
             if (file != null) {
@@ -98,6 +107,7 @@ public class NamesrvStartup {
             }
         }
 
+        // -p 从参数中转换到 namesrvConfig nettyServerConfig 中
         if (commandLine.hasOption('p')) {
             InternalLogger console = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_CONSOLE_NAME);
             MixAll.printObjectProperties(console, namesrvConfig);
@@ -112,6 +122,7 @@ public class NamesrvStartup {
             System.exit(-2);
         }
 
+        //初始化log start
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         JoranConfigurator configurator = new JoranConfigurator();
         configurator.setContext(lc);
@@ -122,6 +133,7 @@ public class NamesrvStartup {
 
         MixAll.printObjectProperties(log, namesrvConfig);
         MixAll.printObjectProperties(log, nettyServerConfig);
+        //初始化log end
 
         final NamesrvController controller = new NamesrvController(namesrvConfig, nettyServerConfig);
 
@@ -142,7 +154,7 @@ public class NamesrvStartup {
             controller.shutdown();
             System.exit(-3);
         }
-
+        //添加系统勾子，这个可以借鉴
         Runtime.getRuntime().addShutdownHook(new ShutdownHookThread(log, new Callable<Void>() {
             @Override
             public Void call() throws Exception {

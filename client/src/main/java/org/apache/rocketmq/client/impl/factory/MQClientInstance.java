@@ -608,6 +608,11 @@ public class MQClientInstance {
         }
     }
 
+    /**
+     * 更新 Topic 的路由信息到 NameServer 中，这一步是在 Producer 第一次发道消息时会创建
+     * [read_code]
+     * date: 2020/9/8 15:39
+     */
     public boolean updateTopicRouteInfoFromNameServer(final String topic, boolean isDefault,
         DefaultMQProducer defaultMQProducer) {
         try {

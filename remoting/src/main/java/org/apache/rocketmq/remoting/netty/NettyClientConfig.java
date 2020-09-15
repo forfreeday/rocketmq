@@ -25,6 +25,7 @@ public class NettyClientConfig {
     private int clientOnewaySemaphoreValue = NettySystemConfig.CLIENT_ONEWAY_SEMAPHORE_VALUE;
     private int clientAsyncSemaphoreValue = NettySystemConfig.CLIENT_ASYNC_SEMAPHORE_VALUE;
     private int connectTimeoutMillis = 3000;
+    //channel 的不活越间隔时间
     private long channelNotActiveInterval = 1000 * 60;
 
     /**

@@ -41,16 +41,23 @@ import org.apache.rocketmq.store.config.FlushDiskType;
 import org.apache.rocketmq.store.util.LibC;
 import sun.nio.ch.DirectBuffer;
 
+/**
+ * 存储层
+ * [read_code]
+ * date 2020/9/8 10:42
+ */
 public class MappedFile extends ReferenceResource {
+    //默认页缓存
     public static final int OS_PAGE_SIZE = 1024 * 4;
     protected static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
-
+    //JVM中映射的虚拟内存总大小，这个没大懂作用？？
     private static final AtomicLong TOTAL_MAPPED_VIRTUAL_MEMORY = new AtomicLong(0);
-
+    //JVM中mmap的数量
     private static final AtomicInteger TOTAL_MAPPED_FILES = new AtomicInteger(0);
     protected final AtomicInteger wrotePosition = new AtomicInteger(0);
     protected final AtomicInteger committedPosition = new AtomicInteger(0);
     private final AtomicInteger flushedPosition = new AtomicInteger(0);
+    //映射文件的大小
     protected int fileSize;
     protected FileChannel fileChannel;
     /**
@@ -61,6 +68,7 @@ public class MappedFile extends ReferenceResource {
     private String fileName;
     private long fileFromOffset;
     private File file;
+    //nio 的直接内存
     private MappedByteBuffer mappedByteBuffer;
     private volatile long storeTimestamp = 0;
     private boolean firstCreateInQueue = false;

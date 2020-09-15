@@ -20,6 +20,7 @@ import io.netty.channel.Channel;
 import org.apache.rocketmq.remoting.protocol.LanguageCode;
 
 public class ClientChannelInfo {
+    //nio Channel
     private final Channel channel;
     private final String clientId;
     private final LanguageCode language;
