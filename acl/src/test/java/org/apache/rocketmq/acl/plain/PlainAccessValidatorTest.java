@@ -29,6 +29,8 @@ import org.apache.rocketmq.acl.common.AclConstants;
 import org.apache.rocketmq.acl.common.AclException;
 import org.apache.rocketmq.acl.common.AclUtils;
 import org.apache.rocketmq.acl.common.SessionCredentials;
+import org.apache.rocketmq.common.AclConfig;
+import org.apache.rocketmq.common.MixAll;
 import org.apache.rocketmq.common.PlainAccessConfig;
 import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.common.protocol.header.*;
@@ -179,6 +181,21 @@ public class PlainAccessValidatorTest {
         buf = ByteBuffer.allocate(buf.limit() - buf.position()).put(buf);
         buf.position(0);
         PlainAccessResource accessResource = (PlainAccessResource) plainAccessValidator.parse(RemotingCommand.decode(buf), "192.168.0.1:9876");
+        plainAccessValidator.validate(accessResource);
+    }
+
+    @Test
+    public void validateQueryMessageByKeyTest() {
+        QueryMessageRequestHeader queryMessageRequestHeader=new QueryMessageRequestHeader();
+        queryMessageRequestHeader.setTopic("topicC");
+        RemotingCommand remotingCommand = RemotingCommand.createRequestCommand(RequestCode.QUERY_MESSAGE,queryMessageRequestHeader);
+        aclClient.doBeforeRequest("", remotingCommand);
+        remotingCommand.addExtField(MixAll.UNIQUE_MSG_QUERY_FLAG, "false");
+        ByteBuffer buf = remotingCommand.encodeHeader();
+        buf.getInt();
+        buf = ByteBuffer.allocate(buf.limit() - buf.position()).put(buf);
+        buf.position(0);
+        PlainAccessResource accessResource = (PlainAccessResource) plainAccessValidator.parse(RemotingCommand.decode(buf), "192.168.1.1:9876");
         plainAccessValidator.validate(accessResource);
     }
 
@@ -529,6 +546,26 @@ public class PlainAccessValidatorTest {
         Assert.assertEquals(plainAccessValidator.updateAccessConfig(plainAccessConfig), false);
     }
 
+    @Test(expected = AclException.class)
+    public void createAndUpdateAccessAclYamlConfigExceptionTest() {
+        System.setProperty("rocketmq.home.dir", "src/test/resources");
+        System.setProperty("rocketmq.acl.plain.file", "/conf/plain_acl_update_create.yml");
+
+        PlainAccessConfig plainAccessConfig = new PlainAccessConfig();
+        plainAccessConfig.setAccessKey("RocketMQ33");
+        plainAccessConfig.setSecretKey("123456789111");
+        List<String> topicPerms = new ArrayList<String>();
+        topicPerms.add("topicB=PUB");
+        plainAccessConfig.setTopicPerms(topicPerms);
+        List<String> groupPerms = new ArrayList<String>();
+        groupPerms.add("groupC=DENY1");
+        plainAccessConfig.setGroupPerms(groupPerms);
+
+        PlainAccessValidator plainAccessValidator = new PlainAccessValidator();
+        // Create element in the acl access yaml config file
+        plainAccessValidator.updateAccessConfig(plainAccessConfig);
+    }
+
     @Test
     public void updateGlobalWhiteAddrsNormalTest() {
         System.setProperty("rocketmq.home.dir", "src/test/resources");
@@ -559,6 +596,14 @@ public class PlainAccessValidatorTest {
 
         // Restore the backup file and flush to yaml file
         AclUtils.writeDataObject(targetFileName, backUpAclConfigMap);
+    }
+
+    @Test
+    public void getAllAclConfigTest(){
+        PlainAccessValidator plainAccessValidator = new PlainAccessValidator();
+        AclConfig aclConfig = plainAccessValidator.getAllAclConfig();
+        Assert.assertEquals(aclConfig.getGlobalWhiteAddrs().size(), 2);
+        Assert.assertEquals(aclConfig.getPlainAccessConfigs().size(), 2);
     }
 
 }
